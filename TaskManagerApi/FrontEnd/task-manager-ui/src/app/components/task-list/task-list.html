@@ -1,0 +1,14 @@
+<h2>Mes tâches</h2>
+
+<input [(ngModel)]="newTaskTitle" placeholder="Nouvelle tâche">
+<button (click)="addTask()">Ajouter</button>
+
+<ul>
+  <li *ngFor="let task of tasks">
+    <input type="checkbox"
+           [checked]="task.isCompleted"
+           (change)="toggleTask(task)">
+    {{ task.title }}
+    <button (click)="deleteTask(task.id)">Supprimer</button>
+  </li>
+</ul>

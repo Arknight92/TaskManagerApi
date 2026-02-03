@@ -38,7 +38,7 @@ namespace TaskManagerApi.Controllers
             return CreatedAtAction(nameof(GetAll), new { id = task.Id }, task);
         }
 
-        [HttpPut("id")] 
+        [HttpPut("{id}")] 
 
         public async Task<IActionResult> Update(int id, TaskItem updatedTask)
         {
@@ -61,7 +61,7 @@ namespace TaskManagerApi.Controllers
         }
 
 
-        [HttpDelete("id")]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             var task = await _context.Tasks.FindAsync(id);
