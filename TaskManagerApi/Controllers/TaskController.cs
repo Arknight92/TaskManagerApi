@@ -11,7 +11,6 @@ namespace TaskManagerApi.Controllers
     [ApiController]
     public class TaskController : ControllerBase
     {
-        // private static List<TaskItem> _tasks = new List<TaskItem>();
         private readonly AppDbContext _context;
 
         public TaskController(AppDbContext context)
@@ -37,6 +36,42 @@ namespace TaskManagerApi.Controllers
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetAll), new { id = task.Id }, task);
+        }
+
+        [HttpPut("id")] 
+
+        public async Task<IActionResult> Update(int id, TaskItem updatedTask)
+        {
+            // FindAsync => finding task using primary key (id)
+            var existingTask = await _context.Tasks.FindAsync(id);
+
+            if(existingTask == null)
+            {
+                return NotFound();
+            }
+
+            existingTask.Title = updatedTask.Title;
+            existingTask.Description = updatedTask.Description;
+            existingTask.IsCompleted = updatedTask.IsCompleted;
+
+            await _context.SaveChangesAsync();
+
+            return NoContent(); // Success, with no return value
+
+        }
+
+
+        [HttpDelete("id")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var task = await _context.Tasks.FindAsync(id);
+
+            if(task==null) { return NotFound(); }
+
+            _context.Tasks.Remove(task);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
     }
 }
