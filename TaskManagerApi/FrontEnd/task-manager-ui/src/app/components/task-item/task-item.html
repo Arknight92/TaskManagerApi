@@ -1,0 +1,22 @@
+<li>
+  <input type="checkbox"
+         [checked]="task.isCompleted"
+         (change)="onToggle()">
+
+  <!-- MODE NORMAL -->
+  <span *ngIf="!isEditing"
+        (dblclick)="startEdit()"
+        [style.textDecoration]="task.isCompleted ? 'line-through' : 'none'">
+    {{ task.title }}
+  </span>
+
+  <!-- MODE EDITION -->
+  <input *ngIf="isEditing"
+         [(ngModel)]="editedTitle"
+         (keyup.enter)="saveEdit()">
+
+  <button *ngIf="isEditing" (click)="saveEdit()">💾</button>
+  <button *ngIf="isEditing" (click)="cancelEdit()">❌</button>
+
+  <button (click)="onDelete()">Supprimer</button>
+</li>

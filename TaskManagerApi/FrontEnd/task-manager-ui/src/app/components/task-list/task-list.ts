@@ -2,12 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TaskService } from '../../services/task.spec'
-import { TaskItem } from '../../models/task-item' 
+import { TaskItem } from '../../models/task-item'
+import { TaskItemComponent } from '../task-item/task-item'
 
 @Component({
   selector: 'app-task-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TaskItemComponent],
   templateUrl: './task-list.html',
   styleUrl: './task-list.css',
 })
@@ -16,7 +17,8 @@ export class TaskListComponent implements OnInit {
 
   tasks: TaskItem[] = [];
   newTaskTitle = '';
-
+  loading = false;
+  errorMessage = '';
   constructor(private taskService: TaskService) { }
 
   ngOnInit(): void {
@@ -24,8 +26,18 @@ export class TaskListComponent implements OnInit {
   }
 
   loadTasks() {
-    this.taskService.getTasks().subscribe(data => {
-      this.tasks = data;
+    this.loading = true;
+    this.errorMessage = '';
+
+    this.taskService.getTasks().subscribe({
+      next: data => {
+        this.tasks = data;
+        this.loading = false;
+      },
+      error: err => {
+        this.errorMessage = "Impossible de charger les tâches";
+        this.loading = false;
+      }
     });
   }
 
@@ -46,4 +58,9 @@ export class TaskListComponent implements OnInit {
   deleteTask(id: number) {
     this.taskService.deleteTask(id).subscribe(() => this.loadTasks());
   }
+
+  updateTask(task: TaskItem) {
+    this.taskService.updateTask(task).subscribe(() => this.loadTasks());
+  }
+
 }
