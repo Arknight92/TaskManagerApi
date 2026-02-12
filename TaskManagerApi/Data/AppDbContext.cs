@@ -10,5 +10,6 @@ namespace TaskManagerApi.Data
         }
 
         public DbSet<TaskItem> Tasks => Set<TaskItem>();
+        public DbSet<User> Users {  get; set; }
     }
 }
