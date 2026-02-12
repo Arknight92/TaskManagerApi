@@ -36,7 +36,12 @@ export class TaskItemComponent {
   }
 
   onToggle() {
-    this.toggle.emit(this.task);
+    const updatedTask: TaskItem = {
+      ...this.task,
+      isCompleted: !this.task.isCompleted
+    };
+
+    this.toggle.emit(updatedTask);
   }
 
   onDelete() {

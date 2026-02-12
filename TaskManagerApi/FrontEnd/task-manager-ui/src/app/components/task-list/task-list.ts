@@ -19,6 +19,9 @@ export class TaskListComponent implements OnInit {
   newTaskTitle = '';
   loading = false;
   errorMessage = '';
+
+  filter: 'all' | 'active' | 'completed' = 'all';
+
   constructor(private taskService: TaskService) { }
 
   ngOnInit(): void {
@@ -44,9 +47,9 @@ export class TaskListComponent implements OnInit {
   addTask() {
     if (!this.newTaskTitle.trim()) return;
 
-    this.taskService.addTask(this.newTaskTitle).subscribe(() => {
+    this.taskService.addTask(this.newTaskTitle).subscribe(createdTask => {
+      this.tasks.push(createdTask);
       this.newTaskTitle = '';
-      this.loadTasks();
     });
   }
 
@@ -56,11 +59,37 @@ export class TaskListComponent implements OnInit {
   }
 
   deleteTask(id: number) {
-    this.taskService.deleteTask(id).subscribe(() => this.loadTasks());
+    this.taskService.deleteTask(id).subscribe(() => {
+      this.tasks = this.tasks.filter(t => t.id !== id);
+    });
   }
 
   updateTask(task: TaskItem) {
-    this.taskService.updateTask(task).subscribe(() => this.loadTasks());
+    // this.taskService.updateTask(task).subscribe(() => this.loadTasks());
+    // Update UI immediately
+    this.tasks = this.tasks.map(t =>
+      t.id === task.id ? { ...task } : t
+    );
+
+    // API call in background
+    this.taskService.updateTask(task).subscribe({
+      error: () => this.loadTasks() // rollback
+    }
+    );
   }
 
+  get filteredTasks(): TaskItem[] {
+    switch (this.filter) {
+      case 'active':
+        return this.tasks.filter(t => !t.isCompleted);
+      case 'completed':
+        return this.tasks.filter(t => t.isCompleted);
+      default:
+        return this.tasks;
+    }
+  }
+
+  get remainingCount(): number {
+    return this.tasks.filter(t => !t.isCompleted).length;
+  }
 }

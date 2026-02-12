@@ -3,11 +3,19 @@
 <input [(ngModel)]="newTaskTitle" placeholder="Nouvelle tâche">
 <button (click)="addTask()">Ajouter</button>
 
+<p>{{ remainingCount }} tâche(s) restante(s)</p>
+
+<div>
+  <button (click)="filter = 'all'">Toutes</button>
+  <button (click)="filter = 'active'">À faire</button>
+  <button (click)="filter = 'completed'">Terminées</button>
+</div>
+
 <p *ngIf="loading">Chargement...</p>
 <p *ngIf="errorMessage" style="color:red">{{ errorMessage }}</p>
 
 <ul>
-  <app-task-item *ngFor="let task of tasks"
+  <app-task-item *ngFor="let task of filteredTasks"
                  [task]="task"
                  (toggle)="updateTask($event)"
                  (delete)="deleteTask($event)">
