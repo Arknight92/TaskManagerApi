@@ -6,9 +6,9 @@
 <p>{{ remainingCount }} tâche(s) restante(s)</p>
 
 <div>
-  <button (click)="filter = 'all'">Toutes</button>
-  <button (click)="filter = 'active'">À faire</button>
-  <button (click)="filter = 'completed'">Terminées</button>
+  <button (click)="setFilter('all')">Toutes</button>
+  <button (click)="setFilter('active')">À faire</button>
+  <button (click)="setFilter('completed')">Terminées</button>
 </div>
 
 <p *ngIf="loading">Chargement...</p>

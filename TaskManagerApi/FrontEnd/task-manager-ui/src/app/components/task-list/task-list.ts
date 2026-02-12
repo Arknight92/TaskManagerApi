@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { TaskService } from '../../services/task.spec'
 import { TaskItem } from '../../models/task-item'
 import { TaskItemComponent } from '../task-item/task-item'
+import { ActivatedRoute, Router } from '@angular/router'
 
 @Component({
   selector: 'app-task-list',
@@ -22,9 +23,22 @@ export class TaskListComponent implements OnInit {
 
   filter: 'all' | 'active' | 'completed' = 'all';
 
-  constructor(private taskService: TaskService) { }
+  constructor(private taskService: TaskService,
+    private route: ActivatedRoute,
+    private router: Router) { }
 
   ngOnInit(): void {
+
+    this.route.queryParams.subscribe(params => {
+      const urlFilter = params['filter'];
+
+      if (urlFilter === 'active' || urlFilter === 'completed') {
+        this.filter = urlFilter;
+      } else {
+        this.filter = 'all';
+      }
+    });
+
     this.loadTasks();
   }
 
@@ -91,5 +105,14 @@ export class TaskListComponent implements OnInit {
 
   get remainingCount(): number {
     return this.tasks.filter(t => !t.isCompleted).length;
+  }
+
+  setFilter(value: 'all' | 'active' | 'completed') {
+    this.filter = value;
+
+    this.router.navigate([], {
+      queryParams: { filter: value },
+      queryParamsHandling: 'merge'
+    })
   }
 }
