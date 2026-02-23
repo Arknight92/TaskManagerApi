@@ -25,7 +25,7 @@ builder.Services.AddCors(options => {
     });
 });
 
-var key = "KEY_TO_CHANGE_LATER_3332323";
+var key = "THIS_IS_A_SUPER_SECRET_KEY_FOR_DEV_123456789";
 
 builder.Services.AddAuthentication(options =>
 {

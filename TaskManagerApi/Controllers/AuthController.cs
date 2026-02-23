@@ -12,7 +12,7 @@ using BCrypt.Net;
 public class AuthController : ControllerBase
 {
     private readonly AppDbContext _context;
-    private readonly string _key = "KEY_TO_CHANGE_LATER_3332323";
+    private readonly string _key = "THIS_IS_A_SUPER_SECRET_KEY_FOR_DEV_123456789";
 
     public AuthController(AppDbContext context)
     {

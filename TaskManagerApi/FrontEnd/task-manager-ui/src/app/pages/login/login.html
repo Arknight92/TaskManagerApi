@@ -1,0 +1,8 @@
+<h2>Connexion</h2>
+
+<input [(ngModel)]="username" placeholder="Username">
+<input [(ngModel)]="password" type="password" placeholder="Password">
+
+<button (click)="login()">Se connecter</button>
+
+<p style="color:red" *ngIf="error">{{ error }}</p>
