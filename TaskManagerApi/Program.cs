@@ -4,6 +4,10 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using TaskManagerApi.Data;
+using TaskManagerApi.Repositories;
+using TaskManagerApi.Repositories.Interfaces;
+using TaskManagerApi.Services;
+using TaskManagerApi.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -71,6 +75,8 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+builder.Services.AddScoped<ITaskService, TaskService>();
 var app = builder.Build();
 
 // JWT 
