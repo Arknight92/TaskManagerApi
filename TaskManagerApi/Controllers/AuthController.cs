@@ -6,9 +6,11 @@ using System.Text;
 using TaskManagerApi.Data;
 using TaskManagerApi.Models;
 using BCrypt.Net;
+using Microsoft.AspNetCore.Authorization;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class AuthController : ControllerBase
 {
     private readonly AppDbContext _context;
@@ -19,6 +21,7 @@ public class AuthController : ControllerBase
         _context = context;
     }
 
+    [AllowAnonymous]
     [HttpPost("register")]
     public async Task<IActionResult> Register(User user)
     {
@@ -28,6 +31,7 @@ public class AuthController : ControllerBase
         return Ok();
     }
 
+    [AllowAnonymous]
     [HttpPost("login")]
     public async Task<IActionResult> Login(User login)
     {

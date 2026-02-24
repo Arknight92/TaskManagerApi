@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using TaskManagerApi.Data;
 using TaskManagerApi.Models;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+
 
 namespace TaskManagerApi.Controllers
 {
@@ -23,7 +25,10 @@ namespace TaskManagerApi.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TaskItem>>> GetAll()
         {
-            var tasks = await _context.Tasks.ToListAsync();
+            var userId = GetUserId();
+            var tasks = await _context.Tasks
+                .Where(t => t.UserId == userId)
+                .ToListAsync();
             return Ok(tasks);
         }
 
@@ -31,6 +36,7 @@ namespace TaskManagerApi.Controllers
         public async Task<ActionResult<TaskItem>> Create(TaskItem task)
         {
             task.CreateAt = DateTime.UtcNow;
+            task.UserId = GetUserId();
 
             _context.Tasks.Add(task);
 
@@ -46,8 +52,9 @@ namespace TaskManagerApi.Controllers
         {
             // FindAsync => finding task using primary key (id)
             var existingTask = await _context.Tasks.FindAsync(id);
+            var userId = GetUserId();
 
-            if(existingTask == null)
+            if(existingTask == null || existingTask.UserId != userId)
             {
                 return NotFound();
             }
@@ -67,13 +74,20 @@ namespace TaskManagerApi.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var task = await _context.Tasks.FindAsync(id);
+            var userId = GetUserId();
 
-            if(task==null) { return NotFound(); }
+            if(task==null || task.UserId != userId) { return NotFound(); }
 
             _context.Tasks.Remove(task);
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        private int GetUserId()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            return int.Parse(userIdClaim.Value);
         }
     }
 }
