@@ -14,20 +14,18 @@ namespace TaskManagerApi.Services
             _repo = repo;
         }
 
-        public async Task<List<TaskDto>> GetUserTasksAsync(int userId)
+        public async Task<List<TaskResponseDto>> GetUserTasksAsync(int userId)
         {
             var tasks = await _repo.GetByUserIdAsync(userId);
 
-            return tasks.Select(t => new TaskDto
-            {
-                Id = t.Id,
-                Title = t.Title,
-                IsCompleted = t.IsCompleted
-            }).ToList();
+            return tasks.Select(ToResponseDto).ToList();
         }
 
-        public async Task<TaskDto> CreateTaskAsync(int userId, CreateTaskDto dto)
+        public async Task<TaskResponseDto> CreateTaskAsync(int userId, CreateTaskDto dto)
         {
+            if (string.IsNullOrWhiteSpace(dto.Title))
+                throw new ArgumentException("Title is required.");
+
             var task = new TaskItem
             {
                 Title = dto.Title,
@@ -40,12 +38,7 @@ namespace TaskManagerApi.Services
             await _repo.AddAsync(task);
             await _repo.SaveChangesAsync();
 
-            return new TaskDto
-            {
-                Id = task.Id,
-                Title = task.Title,
-                IsCompleted = task.IsCompleted
-            };
+            return ToResponseDto(task);
         }
 
         public async Task<bool> UpdateTaskAsync(int userId, int taskId, UpdateTaskDto dto)
@@ -53,7 +46,8 @@ namespace TaskManagerApi.Services
             var task = await _repo.GetByIdAsync(taskId);
             if (task == null || task.UserId != userId) return false;
 
-            task.Title = dto.Title;
+            task.Title = dto.Title.Trim();
+            task.Description = dto.Description;
             task.IsCompleted = dto.IsCompleted;
 
             _repo.Update(task);
@@ -72,5 +66,14 @@ namespace TaskManagerApi.Services
 
             return true;
         }
+
+        private static TaskResponseDto ToResponseDto(TaskItem t) => new()
+        {
+            Id = t.Id,
+            Title = t.Title,
+            Description = t.Description,
+            IsCompleted = t.IsCompleted,
+            CreatedAt = t.CreateAt
+        };
     }
 }

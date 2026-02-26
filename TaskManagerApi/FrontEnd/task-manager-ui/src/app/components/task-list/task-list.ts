@@ -68,8 +68,7 @@ export class TaskListComponent implements OnInit {
   }
 
   toggleTask(task: TaskItem) {
-    task.isCompleted = !task.isCompleted;
-    this.taskService.updateTask(task).subscribe();
+    this.updateTask({ ...task, isCompleted: !task.isCompleted });
   }
 
   deleteTask(id: number) {

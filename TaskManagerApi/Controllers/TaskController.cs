@@ -25,28 +25,29 @@ namespace TaskManagerApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public async Task<ActionResult<List<TaskResponseDto>>> Get()
         {
             return Ok(await _service.GetUserTasksAsync(GetUserId()));
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CreateTaskDto dto)
+        public async Task<ActionResult<TaskResponseDto>> Create([FromBody] CreateTaskDto dto)
         {
-            var result = await _service.CreateTaskAsync(GetUserId(), dto);
-            return Ok(result);
+            var userId = GetUserId();
+            var created = await _service.CreateTaskAsync(userId, dto);
+            return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
         }
 
-        [HttpPut("{id}")] 
+        [HttpPut("{id:int}")] 
 
-        public async Task<IActionResult> Update(int id, UpdateTaskDto dto)
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateTaskDto dto)
         {
             var success = await _service.UpdateTaskAsync(GetUserId(), id, dto);
             return success ? NoContent() : NotFound();
         }
 
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
             var success = await _service.DeleteTaskAsync(GetUserId(), id);

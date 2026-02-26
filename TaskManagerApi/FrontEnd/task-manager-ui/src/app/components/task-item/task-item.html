@@ -9,6 +9,9 @@
         [style.textDecoration]="task.isCompleted ? 'line-through' : 'none'">
     {{ task.title }}
   </span>
+  <div *ngIf="task.description">
+    <small>{{ task.description }}</small>
+  </div>
 
   <!-- MODE EDITION -->
   <input *ngIf="isEditing"

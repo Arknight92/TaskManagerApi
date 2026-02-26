@@ -1,12 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using BCrypt.Net;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using TaskManagerApi.Data;
+using TaskManagerApi.DTOs.Auth;
 using TaskManagerApi.Models;
-using BCrypt.Net;
-using Microsoft.AspNetCore.Authorization;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -23,37 +25,69 @@ public class AuthController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("register")]
-    public async Task<IActionResult> Register(User user)
+    public async Task<ActionResult<AuthResponseDto>> Register(RegisterRequestDto request)
     {
-        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(user.PasswordHash);
+        if (await _context.Users.AnyAsync(u => u.Username == request.Username))
+            return BadRequest("Username already exists");
+
+        var user = new User
+        {
+            Username = request.Username,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password)
+        };
+
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
-        return Ok();
+
+        var token = GenerateJwtToken(user);
+
+        return Ok(new AuthResponseDto
+        {
+            Token = token,
+            Username = user.Username
+        });
     }
 
     [AllowAnonymous]
     [HttpPost("login")]
-    public async Task<IActionResult> Login(User login)
+    public async Task<ActionResult<AuthResponseDto>> Login(LoginRequestDto request)
     {
-        var user = _context.Users.FirstOrDefault(u => u.Username == login.Username);
-        if (user == null || !BCrypt.Net.BCrypt.Verify(login.PasswordHash, user.PasswordHash))
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.Username == request.Username);
+
+        if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             return Unauthorized();
 
+        var token = GenerateJwtToken(user);
+
+        return Ok(new AuthResponseDto
+        {
+            Token = token,
+            Username = user.Username
+        });
+    }
+
+    private string GenerateJwtToken(User user)
+    {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.UTF8.GetBytes(_key);
 
+        var claims = new[]
+        {
+        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new Claim(ClaimTypes.Name, user.Username)
+    };
+
         var tokenDescriptor = new SecurityTokenDescriptor
         {
-            Subject = new ClaimsIdentity(new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.Username)
-            }),
+            Subject = new ClaimsIdentity(claims),
             Expires = DateTime.UtcNow.AddHours(2),
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            SigningCredentials = new SigningCredentials(
+                new SymmetricSecurityKey(key),
+                SecurityAlgorithms.HmacSha256Signature)
         };
 
         var token = tokenHandler.CreateToken(tokenDescriptor);
-        return Ok(new { token = tokenHandler.WriteToken(token) });
+        return tokenHandler.WriteToken(token);
     }
 }
